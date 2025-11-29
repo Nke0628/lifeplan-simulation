@@ -1,12 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { MainLayout } from '@/components/MainLayout';
 import { ScenarioSelector } from '@/components/compare/ScenarioSelector';
-import { ComparisonChart } from '@/components/compare/ComparisonChart';
-import { ComparisonTable } from '@/components/compare/ComparisonTable';
 import type { Scenario } from '@/types/scenario';
 import type { SimulationResult } from '@/types/simulation';
+
+// 比較グラフコンポーネントを動的にインポート（コード分割）
+const ComparisonChart = dynamic(
+  () => import('@/components/compare/ComparisonChart').then((mod) => ({ default: mod.ComparisonChart })),
+  {
+    loading: () => <div className="h-96 flex items-center justify-center text-gray-500">グラフを読み込み中...</div>,
+    ssr: false
+  }
+);
+
+const ComparisonTable = dynamic(
+  () => import('@/components/compare/ComparisonTable').then((mod) => ({ default: mod.ComparisonTable })),
+  {
+    loading: () => <div className="h-48 flex items-center justify-center text-gray-500">テーブルを読み込み中...</div>,
+    ssr: false
+  }
+);
 
 interface ScenarioWithResult {
   scenario: Scenario;
@@ -28,55 +44,56 @@ export default function ComparePage() {
     }
   }, []);
 
-  // シナリオ一覧を取得
-  useEffect(() => {
-    async function fetchScenarios() {
-      try {
-        const response = await fetch('/api/scenarios');
-        if (response.ok) {
-          const data = await response.json();
-          setScenarios(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch scenarios:', error);
+  // シナリオ一覧を取得 - メモ化
+  const fetchScenarios = useCallback(async () => {
+    try {
+      const response = await fetch('/api/scenarios');
+      if (response.ok) {
+        const data = await response.json();
+        setScenarios(data);
       }
+    } catch (error) {
+      console.error('Failed to fetch scenarios:', error);
     }
-    fetchScenarios();
   }, []);
 
-  // 選択されたシナリオのシミュレーションを実行
   useEffect(() => {
-    async function runComparison() {
-      if (selectedIds.length === 0) {
-        setComparisonData([]);
-        return;
-      }
+    fetchScenarios();
+  }, [fetchScenarios]);
 
-      setLoading(true);
-      try {
-        const results = await Promise.all(
-          selectedIds.map(async (id) => {
-            const scenario = scenarios.find((s) => s.id === id);
-            if (!scenario) return null;
-
-            const response = await fetch(`/api/scenarios/${id}/simulate`);
-            if (!response.ok) return null;
-
-            const result = await response.json();
-            return { scenario, result };
-          })
-        );
-
-        setComparisonData(results.filter((r): r is ScenarioWithResult => r !== null));
-      } catch (error) {
-        console.error('Failed to run comparison:', error);
-      } finally {
-        setLoading(false);
-      }
+  // 選択されたシナリオのシミュレーションを実行 - メモ化
+  const runComparison = useCallback(async () => {
+    if (selectedIds.length === 0) {
+      setComparisonData([]);
+      return;
     }
 
-    runComparison();
+    setLoading(true);
+    try {
+      const results = await Promise.all(
+        selectedIds.map(async (id) => {
+          const scenario = scenarios.find((s) => s.id === id);
+          if (!scenario) return null;
+
+          const response = await fetch(`/api/scenarios/${id}/simulate`);
+          if (!response.ok) return null;
+
+          const result = await response.json();
+          return { scenario, result };
+        })
+      );
+
+      setComparisonData(results.filter((r): r is ScenarioWithResult => r !== null));
+    } catch (error) {
+      console.error('Failed to run comparison:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedIds, scenarios]);
+
+  useEffect(() => {
+    runComparison();
+  }, [runComparison]);
 
   return (
     <MainLayout>

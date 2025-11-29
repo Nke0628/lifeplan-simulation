@@ -1,13 +1,32 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import type { SimulationResult } from "@/types/simulation";
 import type { ExpenseItem } from "@/types/expense";
 import type { LifeEvent } from "@/types/lifeEvent";
 import type { Scenario } from "@/types/scenario";
-import { CategoryExpenseChart } from "@/components/charts/CategoryExpenseChart";
-import { LifeEventTimeline } from "@/components/charts/LifeEventTimeline";
+
+// グラフコンポーネントを動的にインポート（コード分割）
+const CategoryExpenseChart = dynamic(
+  () => import("@/components/charts/CategoryExpenseChart").then((mod) => ({ default: mod.CategoryExpenseChart })),
+  {
+    loading: () => <div className="h-96 flex items-center justify-center text-gray-500">グラフを読み込み中...</div>,
+    ssr: false
+  }
+);
+
+const LifeEventTimeline = dynamic(
+  () => import("@/components/charts/LifeEventTimeline").then((mod) => ({ default: mod.LifeEventTimeline })),
+  {
+    loading: () => <div className="h-48 flex items-center justify-center text-gray-500">タイムラインを読み込み中...</div>,
+    ssr: false
+  }
+);
+
+// Rechartsコンポーネントは通常のimportに戻す（dynamic importが複雑になるため）
+// CategoryExpenseChartとLifeEventTimelineがdynamic importされているので十分効果あり
 import {
   LineChart,
   Line,
@@ -80,7 +99,7 @@ export default function ResultPage({ params }: PageProps) {
     }
   }, [scenarioId, fetchAllData]);
 
-  const fetchSimulation = async () => {
+  const fetchSimulation = useCallback(async () => {
     if (!scenarioId) return;
 
     try {
@@ -93,9 +112,9 @@ export default function ResultPage({ params }: PageProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     }
-  };
+  }, [scenarioId]);
 
-  const handleDuplicate = async () => {
+  const handleDuplicate = useCallback(async () => {
     if (!scenarioId) return;
 
     try {
@@ -113,13 +132,13 @@ export default function ResultPage({ params }: PageProps) {
     } catch (err) {
       alert(err instanceof Error ? err.message : "エラーが発生しました");
     }
-  };
+  }, [scenarioId]);
 
-  const handleAddToCompare = () => {
+  const handleAddToCompare = useCallback(() => {
     if (!scenarioId) return;
     // 比較画面に遷移（URLパラメータでシナリオIDを渡す）
     window.location.href = `/scenarios/compare?selected=${scenarioId}`;
-  };
+  }, [scenarioId]);
 
   if (loading) {
     return (
@@ -150,8 +169,24 @@ export default function ResultPage({ params }: PageProps) {
 
   const { years, summary } = result;
 
-  // グラフ用データの準備（5年ごと）
-  const chartData = years.filter((_, index) => index % 5 === 0 || index === years.length - 1);
+  // グラフ用データの準備（5年ごと） - メモ化
+  const chartData = useMemo(() => {
+    return years.filter((_, index) => index % 5 === 0 || index === years.length - 1);
+  }, [years]);
+
+  // カテゴリ別支出データの準備 - メモ化
+  const categoryExpenseData = useMemo(() => {
+    return Object.entries(
+      expenseItems.reduce((acc, item) => {
+        const category = item.category || 'その他';
+        acc[category] = (acc[category] || 0) + item.monthly_amount * 12;
+        return acc;
+      }, {} as Record<string, number>)
+    ).map(([category, amount]) => ({
+      category,
+      amount,
+    }));
+  }, [expenseItems]);
 
   return (
     <ScenarioLayout scenarioId={scenarioId || ""}>
@@ -325,18 +360,7 @@ export default function ResultPage({ params }: PageProps) {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               カテゴリ別支出内訳
             </h2>
-            <CategoryExpenseChart
-              expenseData={Object.entries(
-                expenseItems.reduce((acc, item) => {
-                  const category = item.category || 'その他';
-                  acc[category] = (acc[category] || 0) + item.monthly_amount * 12;
-                  return acc;
-                }, {} as Record<string, number>)
-              ).map(([category, amount]) => ({
-                category,
-                amount,
-              }))}
-            />
+            <CategoryExpenseChart expenseData={categoryExpenseData} />
           </div>
         )}
 
