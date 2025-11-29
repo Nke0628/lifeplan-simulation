@@ -19,6 +19,15 @@ export default function ComparePage() {
   const [comparisonData, setComparisonData] = useState<ScenarioWithResult[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // URLパラメータから選択されたシナリオIDを取得
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const selectedParam = params.get('selected');
+    if (selectedParam) {
+      setSelectedIds([selectedParam]);
+    }
+  }, []);
+
   // シナリオ一覧を取得
   useEffect(() => {
     async function fetchScenarios() {

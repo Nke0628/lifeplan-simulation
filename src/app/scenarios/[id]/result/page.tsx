@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import type { SimulationResult } from "@/types/simulation";
 import type { ExpenseItem } from "@/types/expense";
@@ -40,13 +40,7 @@ export default function ResultPage({ params }: PageProps) {
     });
   }, [params]);
 
-  useEffect(() => {
-    if (scenarioId) {
-      fetchAllData();
-    }
-  }, [scenarioId]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     if (!scenarioId) return;
 
     try {
@@ -78,7 +72,13 @@ export default function ResultPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [scenarioId]);
+
+  useEffect(() => {
+    if (scenarioId) {
+      fetchAllData();
+    }
+  }, [scenarioId, fetchAllData]);
 
   const fetchSimulation = async () => {
     if (!scenarioId) return;
@@ -93,6 +93,32 @@ export default function ResultPage({ params }: PageProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     }
+  };
+
+  const handleDuplicate = async () => {
+    if (!scenarioId) return;
+
+    try {
+      const response = await fetch(`/api/scenarios/${scenarioId}/duplicate`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("シナリオの複製に失敗しました");
+      }
+
+      const duplicatedScenario = await response.json();
+      // 複製したシナリオの編集画面に遷移
+      window.location.href = `/scenarios/${duplicatedScenario.id}/edit`;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "エラーが発生しました");
+    }
+  };
+
+  const handleAddToCompare = () => {
+    if (!scenarioId) return;
+    // 比較画面に遷移（URLパラメータでシナリオIDを渡す）
+    window.location.href = `/scenarios/compare?selected=${scenarioId}`;
   };
 
   if (loading) {
@@ -143,6 +169,28 @@ export default function ResultPage({ params }: PageProps) {
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
           >
             🔄 再計算
+          </button>
+        </div>
+
+        {/* アクションボタン */}
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={`/scenarios/${scenarioId}/edit`}
+            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-medium text-gray-700"
+          >
+            ✏️ 編集に戻る
+          </a>
+          <button
+            onClick={handleDuplicate}
+            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-medium text-gray-700"
+          >
+            📋 シナリオを複製
+          </button>
+          <button
+            onClick={handleAddToCompare}
+            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-medium text-gray-700"
+          >
+            🔄 比較に追加
           </button>
         </div>
 
