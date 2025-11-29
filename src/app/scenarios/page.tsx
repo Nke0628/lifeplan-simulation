@@ -27,12 +27,20 @@ export default async function ScenariosPage() {
             <h1 className="text-3xl font-bold text-gray-900">シナリオ一覧</h1>
             <p className="mt-2 text-gray-600">作成したシナリオを管理します</p>
           </div>
-          <Link
-            href="/scenarios/new"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
-          >
-            ➕ 新規作成
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/scenarios/compare"
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-semibold"
+            >
+              📊 シナリオ比較
+            </Link>
+            <Link
+              href="/scenarios/new"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
+            >
+              ➕ 新規作成
+            </Link>
+          </div>
         </div>
 
         {/* シナリオ一覧 */}

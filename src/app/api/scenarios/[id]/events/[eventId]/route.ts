@@ -81,7 +81,7 @@ export async function PUT(
 
     const { data: life_event, error } = await supabase
       .from('life_events')
-      .update(body)
+      .update(body as any)
       .eq('id', eventId)
       .eq('scenario_id', scenarioId)
       .select()

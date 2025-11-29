@@ -93,7 +93,7 @@ export async function POST(
         duration_years: body.duration_years || null,
         annual_cost: body.annual_cost || null,
         memo: body.memo || null,
-      })
+      } as any)
       .select()
       .single();
 

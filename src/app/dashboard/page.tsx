@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { MainLayout } from '@/components/MainLayout';
 import Link from 'next/link';
+import type { Scenario } from '@/types/scenario';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export default async function DashboardPage() {
     .select('*')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
-    .limit(3);
+    .limit(3) as { data: Scenario[] | null };
 
   return (
     <MainLayout>
@@ -48,6 +49,15 @@ export default async function DashboardPage() {
               <div className="text-3xl mb-2">📊</div>
               <h3 className="font-semibold text-gray-900 mb-1">シナリオ一覧</h3>
               <p className="text-sm text-gray-600">作成したシナリオを確認・編集</p>
+            </Link>
+
+            <Link
+              href="/scenarios/compare"
+              className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
+            >
+              <div className="text-3xl mb-2">🔄</div>
+              <h3 className="font-semibold text-gray-900 mb-1">シナリオ比較</h3>
+              <p className="text-sm text-gray-600">複数のシナリオを並列比較</p>
             </Link>
 
             <Link

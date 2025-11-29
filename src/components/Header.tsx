@@ -16,6 +16,7 @@ export function Header() {
   const navigation = [
     { name: "ダッシュボード", href: "/dashboard" },
     { name: "シナリオ", href: "/scenarios" },
+    { name: "比較", href: "/scenarios/compare" },
     { name: "設定", href: "/settings" },
     { name: "ヘルプ", href: "/help" },
   ];

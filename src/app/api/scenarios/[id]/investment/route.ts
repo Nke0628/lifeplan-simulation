@@ -105,7 +105,7 @@ export async function POST(
         expected_return_rate:
           body.expected_return_rate ?? DEFAULT_INVESTMENT_SETTING.expected_return_rate,
         tax_rate: body.tax_rate ?? DEFAULT_INVESTMENT_SETTING.tax_rate,
-      })
+      } as any)
       .select()
       .single();
 
@@ -159,7 +159,7 @@ export async function PUT(
 
     const { data: investment_setting, error } = await supabase
       .from('investment_settings')
-      .update(body)
+      .update(body as any)
       .eq('scenario_id', scenarioId)
       .select()
       .single();

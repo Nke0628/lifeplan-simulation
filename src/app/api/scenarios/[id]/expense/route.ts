@@ -74,7 +74,7 @@ export async function POST(
       .insert({
         ...body,
         scenario_id: scenarioId,
-      })
+      } as any)
       .select()
       .single();
 

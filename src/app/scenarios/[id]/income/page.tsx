@@ -58,10 +58,10 @@ export default function IncomePage() {
     }
   };
 
-  const handleUpdate = async (item: IncomeItem) => {
+  const handleUpdate = async (item: IncomeItem | CreateIncomeItemInput) => {
     try {
       const response = await fetch(
-        `/api/scenarios/${scenarioId}/income/${item.id}`,
+        `/api/scenarios/${scenarioId}/income/${(item as IncomeItem).id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

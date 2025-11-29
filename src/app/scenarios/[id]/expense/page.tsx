@@ -57,10 +57,10 @@ export default function ExpensePage() {
     }
   };
 
-  const handleUpdate = async (item: ExpenseItem) => {
+  const handleUpdate = async (item: ExpenseItem | CreateExpenseItemInput) => {
     try {
       const response = await fetch(
-        `/api/scenarios/${scenarioId}/expense/${item.id}`,
+        `/api/scenarios/${scenarioId}/expense/${(item as ExpenseItem).id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

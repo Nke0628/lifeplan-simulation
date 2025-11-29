@@ -34,7 +34,7 @@ export async function PUT(
 
     const { data: expense_item, error } = await supabase
       .from('expense_items')
-      .update(body)
+      .update(body as any)
       .eq('id', expenseId)
       .eq('scenario_id', scenarioId)
       .select()

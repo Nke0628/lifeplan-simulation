@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import type { Scenario } from '@/types/scenario';
 
 // POST: シナリオ複製
 export async function POST(
@@ -24,7 +25,7 @@ export async function POST(
       .select('*')
       .eq('id', id)
       .eq('user_id', user.id)
-      .single();
+      .single<Scenario>();
 
     if (fetchError || !originalScenario) {
       return NextResponse.json(
@@ -34,19 +35,21 @@ export async function POST(
     }
 
     // 新しいシナリオを作成
+    const insertData = {
+      user_id: user.id,
+      name: `${originalScenario.name} (コピー)`,
+      description: originalScenario.description,
+      current_age: originalScenario.current_age,
+      target_age: originalScenario.target_age,
+      inflation_rate: originalScenario.inflation_rate,
+      is_active: true,
+    };
+
     const { data: newScenario, error: createError } = await supabase
       .from('scenarios')
-      .insert({
-        user_id: user.id,
-        name: `${originalScenario.name} (コピー)`,
-        description: originalScenario.description,
-        current_age: originalScenario.current_age,
-        target_age: originalScenario.target_age,
-        inflation_rate: originalScenario.inflation_rate,
-        is_active: true,
-      })
+      .insert(insertData as any)
       .select()
-      .single();
+      .single<Scenario>();
 
     if (createError) {
       return NextResponse.json(
