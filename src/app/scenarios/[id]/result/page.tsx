@@ -140,6 +140,27 @@ export default function ResultPage({ params }: PageProps) {
     window.location.href = `/scenarios/compare?selected=${scenarioId}`;
   }, [scenarioId]);
 
+  // グラフ用データの準備（5年ごと） - メモ化（Hooksの順序を保つため早期returnの前に配置）
+  const chartData = useMemo(() => {
+    if (!result || !result.years || result.years.length === 0) return [];
+    return result.years.filter((_, index) => index % 5 === 0 || index === result.years.length - 1);
+  }, [result]);
+
+  // カテゴリ別支出データの準備 - メモ化
+  const categoryExpenseData = useMemo(() => {
+    if (!expenseItems || expenseItems.length === 0) return [];
+    return Object.entries(
+      expenseItems.reduce((acc, item) => {
+        const category = item.category || 'その他';
+        acc[category] = (acc[category] || 0) + item.monthly_amount * 12;
+        return acc;
+      }, {} as Record<string, number>)
+    ).map(([category, amount]) => ({
+      category,
+      amount,
+    }));
+  }, [expenseItems]);
+
   if (loading) {
     return (
       <ScenarioLayout scenarioId={scenarioId || ""}>
@@ -168,25 +189,6 @@ export default function ResultPage({ params }: PageProps) {
   }
 
   const { years, summary } = result;
-
-  // グラフ用データの準備（5年ごと） - メモ化
-  const chartData = useMemo(() => {
-    return years.filter((_, index) => index % 5 === 0 || index === years.length - 1);
-  }, [years]);
-
-  // カテゴリ別支出データの準備 - メモ化
-  const categoryExpenseData = useMemo(() => {
-    return Object.entries(
-      expenseItems.reduce((acc, item) => {
-        const category = item.category || 'その他';
-        acc[category] = (acc[category] || 0) + item.monthly_amount * 12;
-        return acc;
-      }, {} as Record<string, number>)
-    ).map(([category, amount]) => ({
-      category,
-      amount,
-    }));
-  }, [expenseItems]);
 
   return (
     <ScenarioLayout scenarioId={scenarioId || ""}>
