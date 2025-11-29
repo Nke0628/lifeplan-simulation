@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import type { CreateIncomeItemInput } from '@/types/income';
+import type { Database } from '@/types/supabase';
 
 // GET: 収入項目一覧取得
 export async function GET(
@@ -74,7 +75,7 @@ export async function POST(
       .insert({
         ...body,
         scenario_id: scenarioId,
-      } as any)
+      } satisfies Database['public']['Tables']['income_items']['Insert'])
       .select()
       .single();
 

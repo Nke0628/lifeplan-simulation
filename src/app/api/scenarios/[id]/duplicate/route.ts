@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Scenario } from '@/types/scenario';
+import type { Database } from '@/types/supabase';
 
 // POST: シナリオ複製
 export async function POST(
@@ -47,7 +48,7 @@ export async function POST(
 
     const { data: newScenario, error: createError } = await supabase
       .from('scenarios')
-      .insert(insertData as any)
+      .insert(insertData satisfies Database['public']['Tables']['scenarios']['Insert'])
       .select()
       .single<Scenario>();
 

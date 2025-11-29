@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import type { CreateExpenseItemInput } from '@/types/expense';
+import type { Database } from '@/types/supabase';
 
 // GET: 支出項目一覧取得
 export async function GET(
@@ -74,7 +75,7 @@ export async function POST(
       .insert({
         ...body,
         scenario_id: scenarioId,
-      } as any)
+      } satisfies Database['public']['Tables']['expense_items']['Insert'])
       .select()
       .single();
 

@@ -5,6 +5,7 @@ import type {
   UpdateInvestmentSettingInput,
 } from '@/types/investment';
 import { DEFAULT_INVESTMENT_SETTING } from '@/types/investment';
+import type { Database } from '@/types/supabase';
 
 // GET: 資産運用設定取得
 export async function GET(
@@ -105,7 +106,7 @@ export async function POST(
         expected_return_rate:
           body.expected_return_rate ?? DEFAULT_INVESTMENT_SETTING.expected_return_rate,
         tax_rate: body.tax_rate ?? DEFAULT_INVESTMENT_SETTING.tax_rate,
-      } as any)
+      } satisfies Database['public']['Tables']['investment_settings']['Insert'])
       .select()
       .single();
 
@@ -159,7 +160,7 @@ export async function PUT(
 
     const { data: investment_setting, error } = await supabase
       .from('investment_settings')
-      .update(body as any)
+      .update(body satisfies Database['public']['Tables']['investment_settings']['Update'])
       .eq('scenario_id', scenarioId)
       .select()
       .single();

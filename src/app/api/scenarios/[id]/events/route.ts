@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import type { CreateLifeEventInput } from '@/types/lifeEvent';
+import type { Database } from '@/types/supabase';
 
 // GET: ライフイベント一覧取得
 export async function GET(
@@ -93,7 +94,7 @@ export async function POST(
         duration_years: body.duration_years || null,
         annual_cost: body.annual_cost || null,
         memo: body.memo || null,
-      } as any)
+      } satisfies Database['public']['Tables']['life_events']['Insert'])
       .select()
       .single();
 

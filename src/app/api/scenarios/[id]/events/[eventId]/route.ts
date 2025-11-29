@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import type { UpdateLifeEventInput } from '@/types/lifeEvent';
+import type { Database } from '@/types/supabase';
 
 // GET: ライフイベント詳細取得
 export async function GET(
@@ -81,7 +82,7 @@ export async function PUT(
 
     const { data: life_event, error } = await supabase
       .from('life_events')
-      .update(body as any)
+      .update(body satisfies Database['public']['Tables']['life_events']['Update'])
       .eq('id', eventId)
       .eq('scenario_id', scenarioId)
       .select()

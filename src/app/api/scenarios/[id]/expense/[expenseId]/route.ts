@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import type { UpdateExpenseItemInput } from '@/types/expense';
+import type { Database } from '@/types/supabase';
 
 // PUT: 支出項目更新
 export async function PUT(
@@ -34,7 +35,7 @@ export async function PUT(
 
     const { data: expense_item, error } = await supabase
       .from('expense_items')
-      .update(body as any)
+      .update(body satisfies Database['public']['Tables']['expense_items']['Update'])
       .eq('id', expenseId)
       .eq('scenario_id', scenarioId)
       .select()
