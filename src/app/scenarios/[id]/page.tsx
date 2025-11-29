@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { ScenarioLayout } from '@/components/ScenarioLayout';
+import { ScenarioActions } from '@/components/ScenarioActions';
 import Link from 'next/link';
 
 interface PageProps {
@@ -33,7 +34,7 @@ export default async function ScenarioDetailPage({ params }: PageProps) {
       <div className="space-y-6">
         {/* ヘッダー */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 {scenario.name}
@@ -42,12 +43,15 @@ export default async function ScenarioDetailPage({ params }: PageProps) {
                 <p className="text-gray-600">{scenario.description}</p>
               )}
             </div>
+          </div>
+          <div className="flex items-center gap-3">
             <Link
               href={`/scenarios/${id}/edit`}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
             >
-              基本情報を編集
+              ✏️ 基本情報を編集
             </Link>
+            <ScenarioActions scenarioId={id} scenarioName={scenario.name} />
           </div>
         </div>
 
