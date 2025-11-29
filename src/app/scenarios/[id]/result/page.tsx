@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import type { SimulationResult } from "@/types/simulation";
+import type { ExpenseItem } from "@/types/expense";
+import type { LifeEvent } from "@/types/lifeEvent";
+import type { Scenario } from "@/types/scenario";
+import { CategoryExpenseChart } from "@/components/charts/CategoryExpenseChart";
+import { LifeEventTimeline } from "@/components/charts/LifeEventTimeline";
 import {
   LineChart,
   Line,
@@ -23,6 +28,9 @@ interface PageProps {
 export default function ResultPage({ params }: PageProps) {
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>([]);
+  const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,9 +42,43 @@ export default function ResultPage({ params }: PageProps) {
 
   useEffect(() => {
     if (scenarioId) {
-      fetchSimulation();
+      fetchAllData();
     }
   }, [scenarioId]);
+
+  const fetchAllData = async () => {
+    if (!scenarioId) return;
+
+    try {
+      // 並列でデータを取得
+      const [simulationRes, scenarioRes, expensesRes, eventsRes] = await Promise.all([
+        fetch(`/api/scenarios/${scenarioId}/simulate`),
+        fetch(`/api/scenarios/${scenarioId}`),
+        fetch(`/api/scenarios/${scenarioId}/expense`),
+        fetch(`/api/scenarios/${scenarioId}/events`),
+      ]);
+
+      if (!simulationRes.ok) {
+        throw new Error("シミュレーションの実行に失敗しました");
+      }
+
+      const [simulationData, scenarioData, expensesData, eventsData] = await Promise.all([
+        simulationRes.json(),
+        scenarioRes.ok ? scenarioRes.json() : null,
+        expensesRes.ok ? expensesRes.json() : [],
+        eventsRes.ok ? eventsRes.json() : [],
+      ]);
+
+      setResult(simulationData);
+      setScenario(scenarioData);
+      setExpenseItems(expensesData);
+      setLifeEvents(eventsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchSimulation = async () => {
     if (!scenarioId) return;
@@ -50,8 +92,6 @@ export default function ResultPage({ params }: PageProps) {
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -230,6 +270,41 @@ export default function ResultPage({ params }: PageProps) {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
+        {/* カテゴリ別支出グラフ */}
+        {expenseItems.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              カテゴリ別支出内訳
+            </h2>
+            <CategoryExpenseChart
+              expenseData={Object.entries(
+                expenseItems.reduce((acc, item) => {
+                  const category = item.category || 'その他';
+                  acc[category] = (acc[category] || 0) + item.monthly_amount * 12;
+                  return acc;
+                }, {} as Record<string, number>)
+              ).map(([category, amount]) => ({
+                category,
+                amount,
+              }))}
+            />
+          </div>
+        )}
+
+        {/* ライフイベントタイムライン */}
+        {lifeEvents.length > 0 && scenario && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              ライフイベントタイムライン
+            </h2>
+            <LifeEventTimeline
+              lifeEvents={lifeEvents}
+              currentAge={scenario.current_age}
+              targetAge={scenario.target_age}
+            />
+          </div>
+        )}
 
         {/* 詳細データテーブル */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
