@@ -96,11 +96,23 @@ export async function POST(
 
     const body: CreateInvestmentSettingInput = await request.json();
 
+    // バリデーション: 運用額が総資産を超えないことを確認
+    const initialSavings = body.initial_savings ?? DEFAULT_INVESTMENT_SETTING.initial_savings;
+    const initialInvestmentAmount = body.initial_investment_amount ?? DEFAULT_INVESTMENT_SETTING.initial_investment_amount;
+
+    if (initialInvestmentAmount > initialSavings) {
+      return NextResponse.json(
+        { error: '運用額は総資産額を超えることはできません' },
+        { status: 400 }
+      );
+    }
+
     const { data: investment_setting, error } = await supabase
       .from('investment_settings')
       .insert({
         scenario_id: scenarioId,
-        initial_amount: body.initial_amount ?? DEFAULT_INVESTMENT_SETTING.initial_amount,
+        initial_savings: initialSavings,
+        initial_investment_amount: initialInvestmentAmount,
         monthly_contribution:
           body.monthly_contribution ?? DEFAULT_INVESTMENT_SETTING.monthly_contribution,
         expected_return_rate:
@@ -157,6 +169,16 @@ export async function PUT(
     }
 
     const body: UpdateInvestmentSettingInput = await request.json();
+
+    // バリデーション: 運用額が総資産を超えないことを確認
+    if (body.initial_savings !== undefined && body.initial_investment_amount !== undefined) {
+      if (body.initial_investment_amount > body.initial_savings) {
+        return NextResponse.json(
+          { error: '運用額は総資産額を超えることはできません' },
+          { status: 400 }
+        );
+      }
+    }
 
     const { data: investment_setting, error } = await supabase
       .from('investment_settings')

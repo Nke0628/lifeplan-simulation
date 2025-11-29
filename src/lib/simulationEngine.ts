@@ -23,8 +23,13 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   const inflationRate = scenario.inflation_rate / 100;
 
   const years: YearlyData[] = [];
-  let currentAsset =
-    investmentSetting.initial_amount || 0;
+
+  // 初期資産設定
+  const initialSavings = investmentSetting.initial_savings || 0;
+  const initialInvestmentAmount = investmentSetting.initial_investment_amount || 0;
+
+  let totalAsset = initialSavings; // 総資産（運用資産 + 非運用資産）
+  let investedAsset = initialInvestmentAmount; // 運用資産のみ
 
   const monthlyContribution = investmentSetting.monthly_contribution || 0;
   const returnRate = (investmentSetting.expected_return_rate || 0) / 100;
@@ -33,7 +38,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   let totalIncome = 0;
   let totalExpense = 0;
   let totalEvents = 0;
-  let peakAsset = currentAsset;
+  let peakAsset = totalAsset;
   let peakAge = startAge;
   let bankruptAge: number | null = null;
 
@@ -77,24 +82,31 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     // 年次収支
     const balance = yearIncome - yearExpense - yearEvents;
 
-    // 資産運用計算
+    // 資産運用計算（運用資産のみに適用）
     const yearlyContribution = monthlyContribution * 12;
-    const assetBeforeReturn = currentAsset + balance + yearlyContribution;
-    const investmentReturn = assetBeforeReturn * returnRate;
+
+    // 月次積立は運用資産に追加
+    investedAsset += yearlyContribution;
+
+    // 運用益の計算（運用資産のみ）
+    const investmentReturn = investedAsset * returnRate;
     const taxAmount = investmentReturn * taxRate;
     const netReturn = investmentReturn - taxAmount;
 
-    // 新しい資産残高
-    currentAsset = assetBeforeReturn + netReturn;
+    // 運用資産に運用益を追加
+    investedAsset += netReturn;
+
+    // 総資産の更新（運用資産 + 非運用資産 + 年次収支）
+    totalAsset += balance + yearlyContribution + netReturn;
 
     // ピーク資産の記録
-    if (currentAsset > peakAsset) {
-      peakAsset = currentAsset;
+    if (totalAsset > peakAsset) {
+      peakAsset = totalAsset;
       peakAge = age;
     }
 
     // 資産が底をつく判定
-    if (currentAsset < 0 && bankruptAge === null) {
+    if (totalAsset < 0 && bankruptAge === null) {
       bankruptAge = age;
     }
 
@@ -105,7 +117,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       expense: Math.round(yearExpense),
       balance: Math.round(balance),
       events: Math.round(yearEvents),
-      asset: Math.round(currentAsset),
+      asset: Math.round(totalAsset),
       investmentReturn: Math.round(netReturn),
     });
 
@@ -120,7 +132,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       totalIncome: Math.round(totalIncome),
       totalExpense: Math.round(totalExpense),
       totalEvents: Math.round(totalEvents),
-      finalAsset: Math.round(currentAsset),
+      finalAsset: Math.round(totalAsset),
       peakAsset: Math.round(peakAsset),
       peakAge,
       bankruptAge,

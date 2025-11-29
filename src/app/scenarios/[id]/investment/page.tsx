@@ -64,7 +64,8 @@ export default function InvestmentPage({ params }: PageProps) {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          initial_amount: setting.initial_amount,
+          initial_savings: setting.initial_savings,
+          initial_investment_amount: setting.initial_investment_amount,
           monthly_contribution: setting.monthly_contribution,
           expected_return_rate: setting.expected_return_rate,
           tax_rate: setting.tax_rate,
@@ -72,7 +73,8 @@ export default function InvestmentPage({ params }: PageProps) {
       });
 
       if (!response.ok) {
-        throw new Error("保存に失敗しました");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "保存に失敗しました");
       }
 
       const data = await response.json();
@@ -86,24 +88,28 @@ export default function InvestmentPage({ params }: PageProps) {
     }
   };
 
+  // 非運用資産の計算
+  const nonInvestedAssets = (setting.initial_savings || 0) - (setting.initial_investment_amount || 0);
+
   // 簡易シミュレーション（30年間）
   const calculateProjection = () => {
     const years = 30;
     const results = [];
-    let currentAmount = setting.initial_amount || 0;
+    let investedAsset = setting.initial_investment_amount || 0;
 
     for (let year = 1; year <= years; year++) {
       const yearlyContribution = (setting.monthly_contribution || 0) * 12;
-      const returnAmount =
-        (currentAmount + yearlyContribution) *
-        ((setting.expected_return_rate || 0) / 100);
+      investedAsset += yearlyContribution;
+
+      const returnAmount = investedAsset * ((setting.expected_return_rate || 0) / 100);
       const taxAmount = returnAmount * ((setting.tax_rate || 0) / 100);
       const netReturn = returnAmount - taxAmount;
 
-      currentAmount += yearlyContribution + netReturn;
+      investedAsset += netReturn;
+
       results.push({
         year,
-        amount: Math.round(currentAmount),
+        amount: Math.round(investedAsset),
       });
     }
 
@@ -111,11 +117,12 @@ export default function InvestmentPage({ params }: PageProps) {
   };
 
   const projection = calculateProjection();
-  const finalAmount = projection[projection.length - 1]?.amount || 0;
+  const finalInvestedAmount = projection[projection.length - 1]?.amount || 0;
+  const finalTotalAmount = finalInvestedAmount + nonInvestedAssets;
   const totalContribution =
-    (setting.initial_amount || 0) +
+    (setting.initial_investment_amount || 0) +
     (setting.monthly_contribution || 0) * 12 * 30;
-  const totalReturn = finalAmount - totalContribution;
+  const totalReturn = finalInvestedAmount - totalContribution;
 
   if (loading) {
     return (
@@ -145,60 +152,127 @@ export default function InvestmentPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* 設定フォーム */}
+        {/* 現在の資産状況 */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            運用パラメータ
+          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+            💰 現在の資産状況
           </h2>
 
           <div className="space-y-6">
-            {/* 初期資産額 */}
+            {/* 現在の貯蓄額（総資産） */}
             <div>
               <label
-                htmlFor="initial_amount"
+                htmlFor="initial_savings"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                初期資産額（円）
+                現在の貯蓄額（総資産）
               </label>
-              <input
-                type="number"
-                id="initial_amount"
-                value={setting.initial_amount || 0}
-                onChange={(e) =>
-                  setSetting({
-                    ...setting,
-                    initial_amount: parseFloat(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="0"
-                step="100000"
-              />
-              <p className="mt-1 text-sm text-gray-500">現在の貯蓄額</p>
+              <div className="relative">
+                <input
+                  type="number"
+                  id="initial_savings"
+                  value={setting.initial_savings || 0}
+                  onChange={(e) =>
+                    setSetting({
+                      ...setting,
+                      initial_savings: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  step="100000"
+                />
+                <span className="absolute right-3 top-2 text-gray-500">円</span>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                💡 銀行預金、現金、投資資産などの合計額
+              </p>
             </div>
 
+            {/* うち、運用に回す金額 */}
+            <div>
+              <label
+                htmlFor="initial_investment_amount"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                うち、運用に回す金額
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  id="initial_investment_amount"
+                  value={setting.initial_investment_amount || 0}
+                  onChange={(e) =>
+                    setSetting({
+                      ...setting,
+                      initial_investment_amount: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  max={setting.initial_savings || 0}
+                  step="100000"
+                />
+                <span className="absolute right-3 top-2 text-gray-500">円</span>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                💡 積極的に運用する資産の金額
+              </p>
+            </div>
+
+            {/* 非運用資産の表示 */}
+            {setting.initial_savings !== undefined && setting.initial_investment_amount !== undefined && (
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    📊 非運用資産（生活防衛資金）
+                  </span>
+                  <span className={`text-lg font-bold ${nonInvestedAssets >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {nonInvestedAssets.toLocaleString()}円
+                  </span>
+                </div>
+                {nonInvestedAssets < 0 && (
+                  <p className="mt-2 text-xs text-red-600">
+                    ⚠️ 運用額が総資産額を超えています
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 運用設定 */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+            📈 運用設定
+          </h2>
+
+          <div className="space-y-6">
             {/* 月次積立額 */}
             <div>
               <label
                 htmlFor="monthly_contribution"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                月次積立額（円）
+                月次積立額
               </label>
-              <input
-                type="number"
-                id="monthly_contribution"
-                value={setting.monthly_contribution || 0}
-                onChange={(e) =>
-                  setSetting({
-                    ...setting,
-                    monthly_contribution: parseFloat(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="0"
-                step="10000"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  id="monthly_contribution"
+                  value={setting.monthly_contribution || 0}
+                  onChange={(e) =>
+                    setSetting({
+                      ...setting,
+                      monthly_contribution: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  step="10000"
+                />
+                <span className="absolute right-3 top-2 text-gray-500">円/月</span>
+              </div>
               <p className="mt-1 text-sm text-gray-500">毎月の積立金額</p>
             </div>
 
@@ -208,23 +282,26 @@ export default function InvestmentPage({ params }: PageProps) {
                 htmlFor="expected_return_rate"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                想定年利回り（%）
+                想定年利回り
               </label>
-              <input
-                type="number"
-                id="expected_return_rate"
-                value={setting.expected_return_rate || 0}
-                onChange={(e) =>
-                  setSetting({
-                    ...setting,
-                    expected_return_rate: parseFloat(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="0"
-                max="20"
-                step="0.1"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  id="expected_return_rate"
+                  value={setting.expected_return_rate || 0}
+                  onChange={(e) =>
+                    setSetting({
+                      ...setting,
+                      expected_return_rate: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  max="20"
+                  step="0.1"
+                />
+                <span className="absolute right-3 top-2 text-gray-500">%</span>
+              </div>
               <p className="mt-1 text-sm text-gray-500">
                 年間の期待リターン（一般的には3-7%程度）
               </p>
@@ -236,23 +313,26 @@ export default function InvestmentPage({ params }: PageProps) {
                 htmlFor="tax_rate"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                税率（%）
+                税率
               </label>
-              <input
-                type="number"
-                id="tax_rate"
-                value={setting.tax_rate || 0}
-                onChange={(e) =>
-                  setSetting({
-                    ...setting,
-                    tax_rate: parseFloat(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="0"
-                max="100"
-                step="0.1"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  id="tax_rate"
+                  value={setting.tax_rate || 0}
+                  onChange={(e) =>
+                    setSetting({
+                      ...setting,
+                      tax_rate: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                />
+                <span className="absolute right-3 top-2 text-gray-500">%</span>
+              </div>
               <p className="mt-1 text-sm text-gray-500">
                 運用益に対する税率（標準: 20.315%）
               </p>
@@ -262,7 +342,7 @@ export default function InvestmentPage({ params }: PageProps) {
             <div className="pt-4">
               <button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || nonInvestedAssets < 0}
                 className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? "保存中..." : "設定を保存"}
@@ -277,25 +357,32 @@ export default function InvestmentPage({ params }: PageProps) {
             30年後のシミュレーション
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">初期総資産</div>
+              <div className="text-xl font-bold text-gray-900">
+                {(setting.initial_savings || 0).toLocaleString()}円
+              </div>
+            </div>
+
             <div className="bg-white rounded-lg p-4">
               <div className="text-sm text-gray-600 mb-1">総積立額</div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-xl font-bold text-gray-900">
                 {totalContribution.toLocaleString()}円
               </div>
             </div>
 
             <div className="bg-white rounded-lg p-4">
               <div className="text-sm text-gray-600 mb-1">運用益</div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl font-bold text-green-600">
                 +{totalReturn.toLocaleString()}円
               </div>
             </div>
 
             <div className="bg-white rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">最終資産額</div>
-              <div className="text-2xl font-bold text-blue-600">
-                {finalAmount.toLocaleString()}円
+              <div className="text-sm text-gray-600 mb-1">最終総資産</div>
+              <div className="text-xl font-bold text-blue-600">
+                {finalTotalAmount.toLocaleString()}円
               </div>
             </div>
           </div>
@@ -303,12 +390,12 @@ export default function InvestmentPage({ params }: PageProps) {
           {/* 簡易グラフ */}
           <div className="bg-white rounded-lg p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              資産推移（10年ごと）
+              運用資産の推移（10年ごと）
             </h3>
             <div className="space-y-2">
               {[10, 20, 30].map((year) => {
                 const data = projection[year - 1];
-                const percentage = (data.amount / finalAmount) * 100;
+                const percentage = (data.amount / finalInvestedAmount) * 100;
                 return (
                   <div key={year}>
                     <div className="flex items-center justify-between text-sm mb-1">
@@ -341,20 +428,23 @@ export default function InvestmentPage({ params }: PageProps) {
           </h2>
           <div className="space-y-3 text-sm text-gray-700">
             <div className="bg-gray-50 p-3 rounded-md font-mono text-xs">
-              年間資産額 = (前年資産額 + 年間積立額) × (1 + 利回り) - 税金
+              運用益 = 運用資産 × 年利回り × (1 - 税率)
             </div>
             <p>
+              <strong>運用対象:</strong>{" "}
+              運用資産{(setting.initial_investment_amount || 0).toLocaleString()}円のみに運用益が適用されます
+            </p>
+            <p>
+              <strong>非運用資産:</strong>{" "}
+              {nonInvestedAssets.toLocaleString()}円は生活防衛資金として保持され、運用益は発生しません
+            </p>
+            <p>
               <strong>複利効果:</strong>{" "}
-              運用益が次年度の元本に加わり、さらに運用益を生みます
+              運用益が次年度の運用資産に加わり、さらに運用益を生みます
             </p>
             <p>
               <strong>税金:</strong> 運用益に対して税率
               {setting.tax_rate}%が課税されます
-            </p>
-            <p>
-              <strong>年間積立額:</strong> 月次積立額
-              {(setting.monthly_contribution || 0).toLocaleString()}円 × 12ヶ月 ={" "}
-              {((setting.monthly_contribution || 0) * 12).toLocaleString()}円
             </p>
           </div>
         </div>

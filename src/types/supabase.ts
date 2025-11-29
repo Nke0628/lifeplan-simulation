@@ -194,7 +194,8 @@ export interface Database {
         Row: {
           id: string;
           scenario_id: string;
-          initial_amount: number;
+          initial_savings: number;
+          initial_investment_amount: number;
           monthly_contribution: number;
           expected_return_rate: number;
           tax_rate: number;
@@ -204,7 +205,8 @@ export interface Database {
         Insert: {
           id?: string;
           scenario_id: string;
-          initial_amount?: number;
+          initial_savings?: number;
+          initial_investment_amount?: number;
           monthly_contribution?: number;
           expected_return_rate?: number;
           tax_rate?: number;
@@ -214,7 +216,8 @@ export interface Database {
         Update: {
           id?: string;
           scenario_id?: string;
-          initial_amount?: number;
+          initial_savings?: number;
+          initial_investment_amount?: number;
           monthly_contribution?: number;
           expected_return_rate?: number;
           tax_rate?: number;
