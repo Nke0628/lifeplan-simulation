@@ -41,15 +41,26 @@ cd lifeplan-simulation
 npm install
 ```
 
-3. 環境変数を設定
+3. Supabaseプロジェクトのセットアップ
 
-`.env.example`を`.env.local`にコピーして、必要な環境変数を設定してください。
+Supabaseプロジェクトを作成し、データベーススキーマを適用してください。
+詳細な手順は [supabase/README.md](./supabase/README.md) を参照してください。
+
+4. 環境変数を設定
+
+`.env.example`を`.env.local`にコピーして、Supabaseの環境変数を設定してください。
 
 ```bash
 cp .env.example .env.local
 ```
 
-4. 開発サーバーを起動
+`.env.local`の内容:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+5. 開発サーバーを起動
 
 ```bash
 npm run dev

@@ -373,11 +373,17 @@ users
 
 | カラム名     | 型           | 制約             | 説明                         |
 | ------------ | ------------ | ---------------- | ---------------------------- |
-| id           | UUID         | PK               | ユーザー ID（Supabase Auth） |
+| id           | UUID         | PK, FK(auth.users) | ユーザー ID（Supabase Auth） |
 | email        | VARCHAR(255) | NOT NULL, UNIQUE | メールアドレス               |
 | display_name | VARCHAR(100) |                  | 表示名                       |
+| avatar_url   | TEXT         |                  | プロフィール画像URL          |
 | created_at   | TIMESTAMP    | NOT NULL         | 作成日時                     |
 | updated_at   | TIMESTAMP    | NOT NULL         | 更新日時                     |
+
+**注意**:
+- `email`は`auth.users`と同期して保存（将来的に他の認証プロバイダーを使う可能性を考慮）
+- Googleプロバイダーからの情報（email, full_name, avatar_url）を初回ログイン時に自動保存
+- Database Triggerで`auth.users`にレコードが作成された際に自動的に`public.users`レコードを作成
 
 #### scenarios
 
