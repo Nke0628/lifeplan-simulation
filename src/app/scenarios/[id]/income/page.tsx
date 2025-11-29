@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import { IncomeItemForm } from "@/components/IncomeItemForm";
+import { calculateAnnualIncome } from "@/types/income";
 import type {
   IncomeItem,
   CreateIncomeItemInput,
@@ -109,11 +110,11 @@ export default function IncomePage() {
     return true;
   });
 
-  const totalMonthly = filteredItems.reduce(
-    (sum, item) => sum + item.monthly_amount,
+  const totalAnnual = filteredItems.reduce(
+    (sum, item) => sum + calculateAnnualIncome(item),
     0
   );
-  const totalAnnual = totalMonthly * 12;
+  const totalMonthly = totalAnnual / 12;
 
   if (loading) {
     return (
@@ -243,7 +244,7 @@ export default function IncomePage() {
                       項目名
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      月額
+                      金額
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       期間
@@ -268,7 +269,25 @@ export default function IncomePage() {
                         {item.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                        ¥{item.monthly_amount.toLocaleString()}
+                        {item.category === "ボーナス" && item.bonus_times_per_year > 0 ? (
+                          <div>
+                            <div className="font-medium">
+                              年{item.bonus_times_per_year}回 × ¥{item.bonus_amount_per_time.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              年間 ¥{(item.bonus_times_per_year * item.bonus_amount_per_time).toLocaleString()}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="font-medium">
+                              ¥{item.monthly_amount.toLocaleString()}/月
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              年間 ¥{(item.monthly_amount * 12).toLocaleString()}
+                            </div>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                         {item.start_age}歳 〜{" "}

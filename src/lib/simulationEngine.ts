@@ -1,5 +1,6 @@
 import type { Scenario } from '@/types/scenario';
 import type { IncomeItem } from '@/types/income';
+import { calculateAnnualIncome } from '@/types/income';
 import type { ExpenseItem } from '@/types/expense';
 import type { LifeEvent } from '@/types/lifeEvent';
 import type { InvestmentSetting } from '@/types/investment';
@@ -43,7 +44,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     let yearIncome = 0;
     incomeItems.forEach((item) => {
       if (age >= item.start_age && (item.end_age === null || age <= item.end_age)) {
-        yearIncome += item.monthly_amount * 12;
+        yearIncome += calculateAnnualIncome(item);
       }
     });
 
