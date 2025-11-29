@@ -3,6 +3,10 @@ import { redirect } from 'next/navigation';
 import { MainLayout } from '@/components/MainLayout';
 import Link from 'next/link';
 import type { Scenario } from '@/types/scenario';
+import { ScenarioSummaryCard } from '@/components/dashboard/ScenarioSummaryCard';
+import { OverallSummary } from '@/components/dashboard/OverallSummary';
+import { runSimulation } from '@/lib/simulationEngine';
+import { DEFAULT_INVESTMENT_SETTING } from '@/types/investment';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,6 +24,52 @@ export default async function DashboardPage() {
     .order('updated_at', { ascending: false })
     .limit(3) as { data: Scenario[] | null };
 
+  // 各シナリオのシミュレーション結果を取得
+  const scenariosWithResults = await Promise.all(
+    (scenarios || []).map(async (scenario) => {
+      try {
+        // 収入項目取得
+        const { data: incomeItems } = await supabase
+          .from('income_items')
+          .select('*')
+          .eq('scenario_id', scenario.id);
+
+        // 支出項目取得
+        const { data: expenseItems } = await supabase
+          .from('expense_items')
+          .select('*')
+          .eq('scenario_id', scenario.id);
+
+        // ライフイベント取得
+        const { data: lifeEvents } = await supabase
+          .from('life_events')
+          .select('*')
+          .eq('scenario_id', scenario.id);
+
+        // 資産運用設定取得
+        const { data: investmentSetting } = await supabase
+          .from('investment_settings')
+          .select('*')
+          .eq('scenario_id', scenario.id)
+          .single();
+
+        // シミュレーション実行
+        const result = runSimulation({
+          scenario,
+          incomeItems: incomeItems || [],
+          expenseItems: expenseItems || [],
+          lifeEvents: lifeEvents || [],
+          investmentSetting: investmentSetting || DEFAULT_INVESTMENT_SETTING,
+        });
+
+        return { scenario, result };
+      } catch (error) {
+        console.error(`Failed to run simulation for scenario ${scenario.id}:`, error);
+        return { scenario, result: null };
+      }
+    })
+  );
+
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -28,6 +78,14 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
           <p className="mt-2 text-gray-600">ようこそ、{user.email} さん</p>
         </div>
+
+        {/* 全体サマリー */}
+        {scenarios && scenarios.length > 0 && (
+          <OverallSummary
+            scenariosCount={scenarios.length}
+            simulationResults={scenariosWithResults.map((s) => s.result)}
+          />
+        )}
 
         {/* クイックアクション */}
         <div className="mb-8">
@@ -75,7 +133,7 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">最近のシナリオ</h2>
-            {scenarios && scenarios.length > 0 && (
+            {scenariosWithResults && scenariosWithResults.length > 0 && (
               <Link
                 href="/scenarios"
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -85,7 +143,7 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {!scenarios || scenarios.length === 0 ? (
+          {!scenariosWithResults || scenariosWithResults.length === 0 ? (
             <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
               <p className="text-gray-500 text-center py-8">
                 まだシナリオがありません。新規シナリオを作成してください。
@@ -93,28 +151,12 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {scenarios.map((scenario) => (
-                <Link
+              {scenariosWithResults.map(({ scenario, result }) => (
+                <ScenarioSummaryCard
                   key={scenario.id}
-                  href={`/scenarios/${scenario.id}`}
-                  className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
-                >
-                  <h3 className="font-semibold text-gray-900 mb-2 truncate">
-                    {scenario.name}
-                  </h3>
-                  {scenario.description && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {scenario.description}
-                    </p>
-                  )}
-                  <div className="space-y-1 text-sm text-gray-500">
-                    <p>年齢: {scenario.current_age}歳 → {scenario.target_age}歳</p>
-                    <p>インフレ率: {scenario.inflation_rate}%</p>
-                    <p className="text-xs text-gray-400">
-                      更新: {new Date(scenario.updated_at).toLocaleDateString('ja-JP')}
-                    </p>
-                  </div>
-                </Link>
+                  scenario={scenario}
+                  simulationResult={result}
+                />
               ))}
             </div>
           )}
