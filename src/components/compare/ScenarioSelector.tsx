@@ -126,12 +126,30 @@ function getColor(index: number) {
       badge: 'bg-orange-500',
       chart: '#F59E0B',
     },
+    {
+      border: 'border-purple-500',
+      bg: 'bg-purple-50',
+      badge: 'bg-purple-500',
+      chart: '#8B5CF6',
+    },
+    {
+      border: 'border-pink-500',
+      bg: 'bg-pink-50',
+      badge: 'bg-pink-500',
+      chart: '#EC4899',
+    },
+    {
+      border: 'border-teal-500',
+      bg: 'bg-teal-50',
+      badge: 'bg-teal-500',
+      chart: '#14B8A6',
+    },
   ];
   return colors[index] || colors[0];
 }
 
 // 色情報をエクスポート（グラフで使用）
 export function getChartColor(index: number): string {
-  const colors = ['#3B82F6', '#10B981', '#F59E0B'];
+  const colors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6'];
   return colors[index] || colors[0];
 }

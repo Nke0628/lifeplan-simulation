@@ -102,7 +102,7 @@ export default function ComparePage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">シナリオ比較</h1>
           <p className="mt-2 text-gray-600">
-            最大3つのシナリオを比較して、最適な選択肢を検討できます
+            最大6つのシナリオを比較して、最適な選択肢を検討できます
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export default function ComparePage() {
           scenarios={scenarios}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
-          maxSelection={3}
+          maxSelection={6}
         />
 
         {/* 比較結果 */}
