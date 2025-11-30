@@ -11,11 +11,6 @@ interface BulkEventAddModalProps {
   onSuccess: () => void;
 }
 
-interface SelectedEvent {
-  templateIndex: number;
-  targetAge: number;
-}
-
 const EVENT_TYPE_COLORS: Record<EventType, string> = {
   住宅: 'bg-purple-100 text-purple-700 border-purple-300',
   '結婚・出産': 'bg-pink-100 text-pink-700 border-pink-300',
@@ -33,8 +28,6 @@ export function BulkEventAddModal({
   const [selectedCategory, setSelectedCategory] = useState<EventType | 'all'>('all');
   const [selectedEvents, setSelectedEvents] = useState<Map<number, number>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  if (!isOpen) return null;
 
   const filteredTemplates = useMemo(() => {
     if (selectedCategory === 'all') {
@@ -130,7 +123,7 @@ export function BulkEventAddModal({
     let initialCost = 0;
     let annualCost = 0;
 
-    selectedEvents.forEach((age, index) => {
+    selectedEvents.forEach((_age, index) => {
       const template = EVENT_TEMPLATES[index];
       initialCost += template.estimated_cost;
       if (template.annual_cost && template.duration_years) {
@@ -140,6 +133,8 @@ export function BulkEventAddModal({
 
     return { totalInitialCost: initialCost, totalAnnualCost: annualCost };
   }, [selectedEvents]);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -222,7 +217,7 @@ export function BulkEventAddModal({
                   key={index}
                   className={`border-2 rounded-lg p-4 transition-all ${
                     isSelected
-                      ? 'border-primary bg-primary/5 shadow-sm'
+                      ? 'border-blue-600 bg-blue-50 shadow-sm'
                       : 'border-neutral-200 bg-white hover:border-neutral-300'
                   }`}
                 >
@@ -231,7 +226,7 @@ export function BulkEventAddModal({
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleToggleTemplate(index)}
-                      className="mt-1 h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary cursor-pointer"
+                      className="mt-1 h-5 w-5 rounded border-neutral-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
@@ -280,7 +275,7 @@ export function BulkEventAddModal({
                             }
                             min={0}
                             max={120}
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-md text-neutral-800 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md text-neutral-800 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
                           />
                         </div>
                       )}
@@ -328,7 +323,7 @@ export function BulkEventAddModal({
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || selectedEvents.size === 0}
-              className="flex-1 px-4 py-2.5 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
                 ? '追加中...'
