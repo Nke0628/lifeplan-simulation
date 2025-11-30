@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import { LifeEventForm } from "@/components/LifeEventForm";
+import { BulkEventAddModal } from "@/components/BulkEventAddModal";
+import type { Scenario } from "@/types/scenario";
 import type {
   LifeEvent,
   CreateLifeEventInput,
@@ -24,10 +26,12 @@ const EVENT_TYPE_COLORS: Record<EventType, string> = {
 export default function LifeEventsPage({ params }: PageProps) {
   const router = useRouter();
   const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [scenario, setScenario] = useState<Scenario | null>(null);
   const [events, setEvents] = useState<LifeEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<LifeEvent | undefined>();
   const [filterType, setFilterType] = useState<EventType | "all">("all");
 
@@ -39,9 +43,25 @@ export default function LifeEventsPage({ params }: PageProps) {
 
   useEffect(() => {
     if (scenarioId) {
+      fetchScenario();
       fetchEvents();
     }
   }, [scenarioId]);
+
+  const fetchScenario = async () => {
+    if (!scenarioId) return;
+
+    try {
+      const response = await fetch(`/api/scenarios/${scenarioId}`);
+      if (!response.ok) {
+        throw new Error("シナリオの取得に失敗しました");
+      }
+      const data = await response.json();
+      setScenario(data);
+    } catch (err) {
+      console.error('Failed to fetch scenario:', err);
+    }
+  };
 
   const fetchEvents = async () => {
     if (!scenarioId) return;
@@ -140,22 +160,30 @@ export default function LifeEventsPage({ params }: PageProps) {
     <ScenarioLayout scenarioId={scenarioId || ""}>
       <div className="space-y-6">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">ライフイベント</h1>
             <p className="text-gray-600 mt-1">
               人生の主要なイベントを登録して費用を計画します
             </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingEvent(undefined);
-              setShowForm(true);
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
-          >
-            ➕ イベント追加
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-semibold"
+            >
+              📋 テンプレートから一括追加
+            </button>
+            <button
+              onClick={() => {
+                setEditingEvent(undefined);
+                setShowForm(true);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
+            >
+              ➕ イベント追加
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -343,6 +371,17 @@ export default function LifeEventsPage({ params }: PageProps) {
               </div>
             ))}
           </div>
+        )}
+
+        {/* 一括追加モーダル */}
+        {scenario && (
+          <BulkEventAddModal
+            scenarioId={scenarioId || ""}
+            currentAge={scenario.current_age}
+            isOpen={showBulkModal}
+            onClose={() => setShowBulkModal(false)}
+            onSuccess={fetchEvents}
+          />
         )}
       </div>
     </ScenarioLayout>
