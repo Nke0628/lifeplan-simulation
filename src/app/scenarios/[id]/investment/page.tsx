@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
+import { Button, Input, Card } from "@/components/ui";
+import { Wallet, TrendingUp, Percent, DollarSign, Info } from "lucide-react";
 import type {
   InvestmentSetting,
   UpdateInvestmentSettingInput,
@@ -137,223 +139,189 @@ export default function InvestmentPage({ params }: PageProps) {
 
   return (
     <ScenarioLayout scenarioId={scenarioId || ""}>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* ヘッダー */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">資産運用設定</h1>
-          <p className="text-gray-600 mt-1">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+            資産運用設定
+          </h1>
+          <p className="text-gray-600 text-lg">
             複利計算、税金、インフレ率を考慮した資産運用をシミュレーション
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600">{error}</p>
-          </div>
+          <Card variant="bordered" padding="md" className="border-error-300 bg-error-50">
+            <div className="flex items-start gap-3">
+              <Info className="text-error-600 flex-shrink-0 mt-0.5" size={20} />
+              <p className="text-error-700 font-medium">{error}</p>
+            </div>
+          </Card>
         )}
 
         {/* 現在の資産状況 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            💰 現在の資産状況
+        <Card variant="gradient" padding="lg">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <Wallet className="text-primary-600" size={24} />
+            現在の資産状況
           </h2>
 
           <div className="space-y-6">
             {/* 現在の貯蓄額（総資産） */}
-            <div>
-              <label
-                htmlFor="initial_savings"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                現在の貯蓄額（総資産）
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="initial_savings"
-                  value={setting.initial_savings || 0}
-                  onChange={(e) =>
-                    setSetting({
-                      ...setting,
-                      initial_savings: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                  step="100000"
-                />
-                <span className="absolute right-3 top-2 text-gray-500">円</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                💡 銀行預金、現金、投資資産などの合計額
-              </p>
-            </div>
+            <Input
+              type="number"
+              id="initial_savings"
+              label="現在の貯蓄額（総資産）"
+              value={setting.initial_savings || 0}
+              onChange={(e) =>
+                setSetting({
+                  ...setting,
+                  initial_savings: parseFloat(e.target.value) || 0,
+                })
+              }
+              min="0"
+              step="100000"
+              icon={DollarSign}
+              helperText="銀行預金、現金、投資資産などの合計額"
+              fullWidth
+            />
 
             {/* うち、運用に回す金額 */}
-            <div>
-              <label
-                htmlFor="initial_investment_amount"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                うち、運用に回す金額
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="initial_investment_amount"
-                  value={setting.initial_investment_amount || 0}
-                  onChange={(e) =>
-                    setSetting({
-                      ...setting,
-                      initial_investment_amount: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                  max={setting.initial_savings || 0}
-                  step="100000"
-                />
-                <span className="absolute right-3 top-2 text-gray-500">円</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                💡 積極的に運用する資産の金額
-              </p>
-            </div>
+            <Input
+              type="number"
+              id="initial_investment_amount"
+              label="うち、運用に回す金額"
+              value={setting.initial_investment_amount || 0}
+              onChange={(e) =>
+                setSetting({
+                  ...setting,
+                  initial_investment_amount: parseFloat(e.target.value) || 0,
+                })
+              }
+              min="0"
+              max={setting.initial_savings || 0}
+              step="100000"
+              icon={TrendingUp}
+              helperText="積極的に運用する資産の金額"
+              fullWidth
+            />
 
             {/* 非運用資産の表示 */}
             {setting.initial_savings !== undefined && setting.initial_investment_amount !== undefined && (
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <Card
+                variant={nonInvestedAssets >= 0 ? "default" : "bordered"}
+                padding="md"
+                className={nonInvestedAssets >= 0 ? "bg-success-50 border-success-200" : "bg-error-50 border-error-300"}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    📊 非運用資産（生活防衛資金）
+                  <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Wallet size={18} className={nonInvestedAssets >= 0 ? "text-success-600" : "text-error-600"} />
+                    非運用資産（生活防衛資金）
                   </span>
-                  <span className={`text-lg font-bold ${nonInvestedAssets >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`text-xl font-bold ${nonInvestedAssets >= 0 ? 'text-success-700' : 'text-error-700'}`}>
                     {nonInvestedAssets.toLocaleString()}円
                   </span>
                 </div>
                 {nonInvestedAssets < 0 && (
-                  <p className="mt-2 text-xs text-red-600">
-                    ⚠️ 運用額が総資産額を超えています
-                  </p>
+                  <div className="mt-3 flex items-start gap-2">
+                    <Info size={16} className="text-error-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-error-700 font-medium">
+                      運用額が総資産額を超えています
+                    </p>
+                  </div>
                 )}
-              </div>
+              </Card>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* 運用設定 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            📈 運用設定
+        <Card variant="gradient" padding="lg">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <TrendingUp className="text-secondary-600" size={24} />
+            運用設定
           </h2>
 
           <div className="space-y-6">
             {/* 月次積立額 */}
-            <div>
-              <label
-                htmlFor="monthly_contribution"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                月次積立額
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="monthly_contribution"
-                  value={setting.monthly_contribution || 0}
-                  onChange={(e) =>
-                    setSetting({
-                      ...setting,
-                      monthly_contribution: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                  step="10000"
-                />
-                <span className="absolute right-3 top-2 text-gray-500">円/月</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">毎月の積立金額</p>
-            </div>
+            <Input
+              type="number"
+              id="monthly_contribution"
+              label="月次積立額"
+              value={setting.monthly_contribution || 0}
+              onChange={(e) =>
+                setSetting({
+                  ...setting,
+                  monthly_contribution: parseFloat(e.target.value) || 0,
+                })
+              }
+              min="0"
+              step="10000"
+              icon={DollarSign}
+              helperText="毎月の積立金額"
+              fullWidth
+            />
 
             {/* 想定年利回り */}
-            <div>
-              <label
-                htmlFor="expected_return_rate"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                想定年利回り
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="expected_return_rate"
-                  value={setting.expected_return_rate || 0}
-                  onChange={(e) =>
-                    setSetting({
-                      ...setting,
-                      expected_return_rate: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                />
-                <span className="absolute right-3 top-2 text-gray-500">%</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                年間の期待リターン（一般的には3-7%程度）
-              </p>
-            </div>
+            <Input
+              type="number"
+              id="expected_return_rate"
+              label="想定年利回り"
+              value={setting.expected_return_rate || 0}
+              onChange={(e) =>
+                setSetting({
+                  ...setting,
+                  expected_return_rate: parseFloat(e.target.value) || 0,
+                })
+              }
+              min="0"
+              max="20"
+              step="0.1"
+              icon={Percent}
+              helperText="年間の期待リターン（一般的には3-7%程度）"
+              fullWidth
+            />
 
             {/* 税率 */}
-            <div>
-              <label
-                htmlFor="tax_rate"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                税率
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="tax_rate"
-                  value={setting.tax_rate || 0}
-                  onChange={(e) =>
-                    setSetting({
-                      ...setting,
-                      tax_rate: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-                <span className="absolute right-3 top-2 text-gray-500">%</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                運用益に対する税率（標準: 20.315%）
-              </p>
-            </div>
+            <Input
+              type="number"
+              id="tax_rate"
+              label="税率"
+              value={setting.tax_rate || 0}
+              onChange={(e) =>
+                setSetting({
+                  ...setting,
+                  tax_rate: parseFloat(e.target.value) || 0,
+                })
+              }
+              min="0"
+              max="100"
+              step="0.1"
+              icon={Percent}
+              helperText="運用益に対する税率（標準: 20.315%）"
+              fullWidth
+            />
 
             {/* 保存ボタン */}
             <div className="pt-4">
-              <button
+              <Button
                 onClick={handleSave}
                 disabled={saving || nonInvestedAssets < 0}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="primary"
+                size="lg"
+                fullWidth
+                isLoading={saving}
               >
                 {saving ? "保存中..." : "設定を保存"}
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* シミュレーション結果 */}
-        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg shadow-sm p-6 border border-blue-100">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-primary-50 via-secondary-50/50 to-primary-50">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <TrendingUp className="text-primary-600" size={28} />
             30年後のシミュレーション
           </h2>
 
@@ -419,35 +387,40 @@ export default function InvestmentPage({ params }: PageProps) {
           <div className="mt-4 text-xs text-gray-600">
             ※ このシミュレーションは簡易計算です。実際の運用結果は市場環境により変動します。
           </div>
-        </div>
+        </Card>
 
         {/* 計算式の説明 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <Info className="text-gray-600" size={24} />
             計算方法
           </h2>
-          <div className="space-y-3 text-sm text-gray-700">
-            <div className="bg-gray-50 p-3 rounded-md font-mono text-xs">
-              運用益 = 運用資産 × 年利回り × (1 - 税率)
+          <div className="space-y-4 text-sm text-gray-700">
+            <Card variant="bordered" padding="md" className="bg-gray-50 border-gray-300">
+              <code className="text-sm font-mono text-gray-900">
+                運用益 = 運用資産 × 年利回り × (1 - 税率)
+              </code>
+            </Card>
+            <div className="space-y-3">
+              <p className="flex items-start gap-2">
+                <strong className="text-gray-900 min-w-[100px]">運用対象:</strong>
+                <span>運用資産{(setting.initial_investment_amount || 0).toLocaleString()}円のみに運用益が適用されます</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <strong className="text-gray-900 min-w-[100px]">非運用資産:</strong>
+                <span>{nonInvestedAssets.toLocaleString()}円は生活防衛資金として保持され、運用益は発生しません</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <strong className="text-gray-900 min-w-[100px]">複利効果:</strong>
+                <span>運用益が次年度の運用資産に加わり、さらに運用益を生みます</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <strong className="text-gray-900 min-w-[100px]">税金:</strong>
+                <span>運用益に対して税率{setting.tax_rate}%が課税されます</span>
+              </p>
             </div>
-            <p>
-              <strong>運用対象:</strong>{" "}
-              運用資産{(setting.initial_investment_amount || 0).toLocaleString()}円のみに運用益が適用されます
-            </p>
-            <p>
-              <strong>非運用資産:</strong>{" "}
-              {nonInvestedAssets.toLocaleString()}円は生活防衛資金として保持され、運用益は発生しません
-            </p>
-            <p>
-              <strong>複利効果:</strong>{" "}
-              運用益が次年度の運用資産に加わり、さらに運用益を生みます
-            </p>
-            <p>
-              <strong>税金:</strong> 運用益に対して税率
-              {setting.tax_rate}%が課税されます
-            </p>
           </div>
-        </div>
+        </Card>
       </div>
     </ScenarioLayout>
   );
