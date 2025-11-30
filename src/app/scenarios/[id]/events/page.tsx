@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import { LifeEventForm } from "@/components/LifeEventForm";
 import { BulkEventAddModal } from "@/components/BulkEventAddModal";
+import { Button, Card } from "@/components/ui";
+import { Plus, Calendar, Sparkles, List, Edit2, Trash2, AlertTriangle, ClipboardList } from "lucide-react";
 import type { Scenario } from "@/types/scenario";
 import type {
   LifeEvent,
@@ -160,43 +162,62 @@ export default function LifeEventsPage({ params }: PageProps) {
     <ScenarioLayout scenarioId={scenarioId || ""}>
       <div className="space-y-6">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-10">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">ライフイベント</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
+              ライフイベント
+            </h1>
+            <p className="text-lg text-gray-600">
               人生の主要なイベントを登録して費用を計画します
             </p>
           </div>
-          <div className="flex gap-2">
-            <button
+          <div className="flex gap-3">
+            <Button
               onClick={() => setShowBulkModal(true)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-semibold"
+              variant="secondary"
+              icon={ClipboardList}
+              size="lg"
             >
-              📋 テンプレートから一括追加
-            </button>
-            <button
+              一括追加
+            </Button>
+            <Button
               onClick={() => {
                 setEditingEvent(undefined);
                 setShowForm(true);
               }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
+              variant="primary"
+              icon={Plus}
+              size="lg"
             >
-              ➕ イベント追加
-            </button>
+              イベント追加
+            </Button>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600">{error}</p>
-          </div>
+          <Card variant="bordered" padding="md" className="border-error-300 bg-error-50">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="text-error-600 flex-shrink-0 mt-0.5" size={20} />
+              <p className="text-error-700 font-medium">{error}</p>
+            </div>
+          </Card>
         )}
 
         {/* イベント追加/編集フォーム */}
         {showForm && scenarioId && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingEvent ? "イベント編集" : "新規イベント追加"}
+          <Card variant="elevated" padding="lg">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              {editingEvent ? (
+                <>
+                  <Edit2 className="text-secondary-600" size={28} />
+                  イベント編集
+                </>
+              ) : (
+                <>
+                  <Plus className="text-primary-600" size={28} />
+                  新規イベント追加
+                </>
+              )}
             </h2>
             <LifeEventForm
               scenarioId={scenarioId}
@@ -207,13 +228,14 @@ export default function LifeEventsPage({ params }: PageProps) {
                 setEditingEvent(undefined);
               }}
             />
-          </div>
+          </Card>
         )}
 
         {/* フィルター */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <Card variant="default" padding="md">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <List size={16} />
               フィルター:
             </span>
             <button
@@ -242,53 +264,68 @@ export default function LifeEventsPage({ params }: PageProps) {
               )
             )}
           </div>
-        </div>
+        </Card>
 
         {/* サマリー */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-sm p-6 border border-blue-100">
-          <div className="flex items-center justify-between">
+        <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-primary-50 via-secondary-50/50 to-primary-50 border-primary-200">
+          <div className="flex items-center justify-between flex-wrap gap-6">
             <div>
-              <div className="text-sm text-gray-600 mb-1">
-                {filterType === "all" ? "全イベント" : filterType}の総費用
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="text-primary-600" size={20} />
+                <div className="text-sm font-semibold text-gray-700">
+                  {filterType === "all" ? "全イベント" : filterType}の総費用
+                </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900">
+              <div className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                 {totalCost.toLocaleString()}円
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-600">イベント数</div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center gap-2 mb-2 justify-end">
+                <Calendar className="text-secondary-600" size={20} />
+                <div className="text-sm font-semibold text-gray-700">イベント数</div>
+              </div>
+              <div className="text-3xl font-bold text-secondary-900">
                 {filteredEvents.length}件
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* イベント一覧（タイムライン形式） */}
         {filteredEvents.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              イベントがまだありません
-            </h2>
-            <p className="text-gray-600 mb-6">
-              ライフイベントを追加して、将来の費用を計画しましょう
-            </p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
-            >
-              最初のイベントを追加
-            </button>
-          </div>
+          <Card variant="default" padding="lg">
+            <div className="text-center py-6">
+              <div className="flex justify-center mb-4">
+                <div className="bg-primary-100 rounded-full p-6">
+                  <Sparkles className="text-primary-600" size={48} />
+                </div>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                イベントがまだありません
+              </h2>
+              <p className="text-gray-600 mb-6">
+                ライフイベントを追加して、将来の費用を計画しましょう
+              </p>
+              <Button
+                onClick={() => setShowForm(true)}
+                variant="primary"
+                icon={Plus}
+                size="lg"
+              >
+                最初のイベントを追加
+              </Button>
+            </div>
+          </Card>
         ) : (
           <div className="space-y-4">
             {filteredEvents.map((event) => (
-              <div
+              <Card
                 key={event.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                variant="elevated"
+                padding="lg"
+                hover
               >
-                <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -313,21 +350,25 @@ export default function LifeEventsPage({ params }: PageProps) {
                       )}
                     </div>
                     <div className="flex gap-2 ml-4">
-                      <button
+                      <Button
                         onClick={() => {
                           setEditingEvent(event);
                           setShowForm(true);
                         }}
-                        className="px-3 py-1 text-sm bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                        variant="outline"
+                        icon={Edit2}
+                        size="sm"
                       >
                         編集
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => handleDelete(event.id)}
-                        className="px-3 py-1 text-sm bg-red-50 border border-red-200 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                        variant="error"
+                        icon={Trash2}
+                        size="sm"
                       >
                         削除
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -367,8 +408,7 @@ export default function LifeEventsPage({ params }: PageProps) {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

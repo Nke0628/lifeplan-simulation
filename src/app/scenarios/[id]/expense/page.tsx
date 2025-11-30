@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import { ExpenseItemForm } from "@/components/ExpenseItemForm";
+import { Button, Card } from "@/components/ui";
+import { Plus, CreditCard, Calendar, ListChecks, Minus } from "lucide-react";
 import type {
   ExpenseItem,
   CreateExpenseItemInput,
@@ -167,26 +169,31 @@ export default function ExpensePage() {
     <ScenarioLayout scenarioId={scenarioId}>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* ヘッダー */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">支出管理</h1>
-            <p className="mt-2 text-gray-600">月次ベースの支出項目を管理</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
+              支出管理
+            </h1>
+            <p className="text-lg text-gray-600">月次ベースの支出項目を管理</p>
           </div>
-          <button
+          <Button
             onClick={() => {
               setEditingItem(undefined);
               setShowForm(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            variant="primary"
+            icon={Plus}
+            size="lg"
           >
-            ➕ 新規追加
-          </button>
+            新規追加
+          </Button>
         </div>
 
         {/* フォーム */}
         {showForm && (
-          <div className="mb-8 bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <Card variant="elevated" padding="lg" className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Plus className="text-primary-600" size={28} />
               新規支出項目
             </h2>
             <ExpenseItemForm
@@ -194,12 +201,13 @@ export default function ExpensePage() {
               onSave={handleCreate}
               onCancel={() => setShowForm(false)}
             />
-          </div>
+          </Card>
         )}
 
         {editingItem && (
-          <div className="mb-8 bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <Card variant="elevated" padding="lg" className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Minus className="text-error-600" size={28} />
               支出項目の編集
             </h2>
             <ExpenseItemForm
@@ -208,29 +216,44 @@ export default function ExpensePage() {
               onSave={handleUpdate}
               onCancel={() => setEditingItem(undefined)}
             />
-          </div>
+          </Card>
         )}
 
         {/* サマリー */}
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">月間支出合計</p>
-            <p className="text-2xl font-bold text-gray-900">
+        <div className="mb-8 grid gap-5 md:grid-cols-3">
+          <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-error-50 to-error-100 border-error-200 hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-error-500 rounded-lg p-2.5">
+                <Calendar className="text-white" size={24} />
+              </div>
+              <p className="text-sm font-semibold text-error-700">月間支出合計</p>
+            </div>
+            <p className="text-3xl font-bold text-error-900">
               ¥{totalMonthly.toLocaleString()}
             </p>
-          </div>
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">年間支出合計</p>
-            <p className="text-2xl font-bold text-gray-900">
+          </Card>
+          <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200 hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-warning-500 rounded-lg p-2.5">
+                <CreditCard className="text-white" size={24} />
+              </div>
+              <p className="text-sm font-semibold text-warning-700">年間支出合計</p>
+            </div>
+            <p className="text-3xl font-bold text-warning-900">
               ¥{totalAnnual.toLocaleString()}
             </p>
-          </div>
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">支出項目数</p>
-            <p className="text-2xl font-bold text-gray-900">
+          </Card>
+          <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-secondary-50 to-secondary-100 border-secondary-200 hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-secondary-500 rounded-lg p-2.5">
+                <ListChecks className="text-white" size={24} />
+              </div>
+              <p className="text-sm font-semibold text-secondary-700">支出項目数</p>
+            </div>
+            <p className="text-3xl font-bold text-secondary-900">
               {filteredItems.length}件
             </p>
-          </div>
+          </Card>
         </div>
 
         {/* フィルター */}
@@ -264,7 +287,11 @@ export default function ExpensePage() {
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           {filteredItems.length === 0 ? (
             <div className="p-8 text-center">
-              <div className="text-6xl mb-4">💸</div>
+              <div className="flex justify-center mb-4">
+                <div className="bg-error-100 rounded-full p-6">
+                  <CreditCard className="text-error-600" size={48} />
+                </div>
+              </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 支出項目がありません
               </h3>
