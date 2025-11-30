@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScenarioForm } from "@/components/ScenarioForm";
+import { Card, Button } from "@/components/ui";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 import type { Scenario, UpdateScenarioInput } from "@/types/scenario";
 
 interface PageProps {
@@ -92,36 +94,42 @@ export default function ScenarioEditPage({ params }: PageProps) {
 
   if (error || !scenario) {
     return (
-      <div className="max-w-3xl mx-auto py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <p className="text-red-600">{error || "シナリオが見つかりません"}</p>
-          <button
+      <div className="max-w-3xl mx-auto py-8 px-4">
+        <Card variant="bordered" padding="lg" className="border-error-300 bg-error-50">
+          <div className="flex items-start gap-3 mb-4">
+            <AlertTriangle className="text-error-600 flex-shrink-0 mt-0.5" size={24} />
+            <p className="text-error-700 font-medium text-lg">{error || "シナリオが見つかりません"}</p>
+          </div>
+          <Button
             onClick={() => router.push("/dashboard")}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            variant="error"
+            icon={ArrowLeft}
           >
             ダッシュボードに戻る
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">シナリオ基本情報の編集</h1>
-        <p className="text-gray-600 mt-2">
+    <div className="max-w-3xl mx-auto py-8 px-4">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-3">
+          シナリオ基本情報の編集
+        </h1>
+        <p className="text-gray-600 text-lg">
           シナリオの基本設定を編集します。
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <Card variant="elevated" padding="lg">
         <ScenarioForm
           scenario={scenario}
           onSave={handleSave}
           onCancel={handleCancel}
         />
-      </div>
+      </Card>
     </div>
   );
 }
