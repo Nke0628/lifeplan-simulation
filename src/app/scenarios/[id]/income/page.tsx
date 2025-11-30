@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ScenarioLayout } from "@/components/ScenarioLayout";
 import { IncomeItemForm } from "@/components/IncomeItemForm";
+import { Button, Card } from "@/components/ui";
+import { Plus, TrendingUp, Calendar, ListChecks } from "lucide-react";
 import { calculateAnnualIncome } from "@/types/income";
 import type {
   IncomeItem,
@@ -169,26 +171,31 @@ export default function IncomePage() {
     <ScenarioLayout scenarioId={scenarioId}>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* ヘッダー */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">収入管理</h1>
-            <p className="mt-2 text-gray-600">月次ベースの収入項目を管理</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
+              収入管理
+            </h1>
+            <p className="text-lg text-gray-600">月次ベースの収入項目を管理</p>
           </div>
-          <button
+          <Button
             onClick={() => {
               setEditingItem(undefined);
               setShowForm(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            variant="primary"
+            icon={Plus}
+            size="lg"
           >
-            ➕ 新規追加
-          </button>
+            新規追加
+          </Button>
         </div>
 
         {/* フォーム */}
         {showForm && (
-          <div className="mb-8 bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <Card variant="elevated" padding="lg" className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Plus className="text-primary-600" size={28} />
               新規収入項目
             </h2>
             <IncomeItemForm
@@ -196,12 +203,13 @@ export default function IncomePage() {
               onSave={handleCreate}
               onCancel={() => setShowForm(false)}
             />
-          </div>
+          </Card>
         )}
 
         {editingItem && (
-          <div className="mb-8 bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <Card variant="elevated" padding="lg" className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <TrendingUp className="text-secondary-600" size={28} />
               収入項目の編集
             </h2>
             <IncomeItemForm
@@ -210,29 +218,44 @@ export default function IncomePage() {
               onSave={handleUpdate}
               onCancel={() => setEditingItem(undefined)}
             />
-          </div>
+          </Card>
         )}
 
         {/* サマリー */}
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">月間収入合計</p>
-            <p className="text-2xl font-bold text-gray-900">
+        <div className="mb-8 grid gap-5 md:grid-cols-3">
+          <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200 hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-primary-500 rounded-lg p-2.5">
+                <Calendar className="text-white" size={24} />
+              </div>
+              <p className="text-sm font-semibold text-primary-700">月間収入合計</p>
+            </div>
+            <p className="text-3xl font-bold text-primary-900">
               ¥{totalMonthly.toLocaleString()}
             </p>
-          </div>
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">年間収入合計</p>
-            <p className="text-2xl font-bold text-gray-900">
+          </Card>
+          <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-success-50 to-success-100 border-success-200 hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-success-500 rounded-lg p-2.5">
+                <TrendingUp className="text-white" size={24} />
+              </div>
+              <p className="text-sm font-semibold text-success-700">年間収入合計</p>
+            </div>
+            <p className="text-3xl font-bold text-success-900">
               ¥{totalAnnual.toLocaleString()}
             </p>
-          </div>
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">収入項目数</p>
-            <p className="text-2xl font-bold text-gray-900">
+          </Card>
+          <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-secondary-50 to-secondary-100 border-secondary-200 hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-secondary-500 rounded-lg p-2.5">
+                <ListChecks className="text-white" size={24} />
+              </div>
+              <p className="text-sm font-semibold text-secondary-700">収入項目数</p>
+            </div>
+            <p className="text-3xl font-bold text-secondary-900">
               {filteredItems.length}件
             </p>
-          </div>
+          </Card>
         </div>
 
         {/* フィルター */}
