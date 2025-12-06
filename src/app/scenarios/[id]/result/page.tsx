@@ -283,7 +283,7 @@ export default function ResultPage({ params }: PageProps) {
         )}
 
         {/* サマリーカード */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Card variant="gradient" padding="lg" className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <div className="bg-primary-100 rounded-lg p-2">

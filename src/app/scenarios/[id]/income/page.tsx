@@ -173,7 +173,7 @@ export default function IncomePage() {
         {/* ヘッダー */}
         <div className="mb-10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
               収入管理
             </h1>
             <p className="text-lg text-gray-600">月次ベースの収入項目を管理</p>

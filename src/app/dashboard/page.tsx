@@ -76,7 +76,7 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* ヘッダー */}
         <div className="mb-10">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-3">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-3">
             ダッシュボード
           </h1>
           <p className="text-lg text-gray-600">ようこそ、{user.email} さん</p>

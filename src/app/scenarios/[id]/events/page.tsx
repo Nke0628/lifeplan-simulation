@@ -164,7 +164,7 @@ export default function LifeEventsPage({ params }: PageProps) {
         {/* ヘッダー */}
         <div className="flex items-center justify-between flex-wrap gap-4 mb-10">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
               ライフイベント
             </h1>
             <p className="text-lg text-gray-600">
@@ -276,7 +276,7 @@ export default function LifeEventsPage({ params }: PageProps) {
                   {filterType === "all" ? "全イベント" : filterType}の総費用
                 </div>
               </div>
-              <div className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                 {totalCost.toLocaleString()}円
               </div>
             </div>
@@ -372,7 +372,7 @@ export default function LifeEventsPage({ params }: PageProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100">
                     <div>
                       <div className="text-xs text-gray-500">初期費用</div>
                       <div className="text-lg font-semibold text-gray-900">
